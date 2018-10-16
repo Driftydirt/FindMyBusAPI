@@ -1,6 +1,6 @@
 {
   "name": "find-my-bus-api",
-  "version": "1",
+  "version": "1.0.0",
   "description": "description",
   "author": "Me",
   "license": "MIT",
@@ -22,6 +22,8 @@
   "dependencies": {
     "@nestjs/common": "^5.1.0",
     "@nestjs/core": "^5.1.0",
+    "@types/cors": "^2.8.4",
+    "cors": "^2.8.4",
     "reflect-metadata": "^0.1.12",
     "rxjs": "^6.2.2",
     "typescript": "^3.0.1"
