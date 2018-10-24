@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Logger } from '@nestjs/common';
+import { Controller, Get, Param, Logger, Query } from '@nestjs/common';
 import { SearchResults } from './search-results.interface';
 import * as maps from '@google/maps';
 
@@ -16,19 +16,15 @@ export class SearchResultsController {
 
   @Get()
   async search(
-    @Param('fromLocation') fromLocation,
-    @Param('toLocation') toLocation,
+    @Query('fromLocation') fromLocation,
+    @Query('toLocation') toLocation,
   ): Promise<SearchResults> {
-    const location = '1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA';
-
     Logger.log({ fromLocation, toLocation }, 'Perfoming geo-location lookup');
-
-    const response = await this.googleMapsClient
-      .geocode({ address: location })
-      .asPromise();
-    console.log({ results: JSON.stringify(response.json) });
-    const locationCoords = response.json.results[0].geometry.location;
-
+    const [fromCoords, toCoords] = await Promise.all([
+      this.queryGoogleAPI(fromLocation),
+      this.queryGoogleAPI(toLocation),
+    ]);
+    console.log({ fromCoords, toCoords });
     const mockResults: SearchResults = {
       fromLocation,
       toLocation,
@@ -39,5 +35,14 @@ export class SearchResultsController {
       ],
     };
     return mockResults;
+  }
+  public async queryGoogleAPI(location: string): Promise<maps.LatLngLiteral> {
+    const response = await this.googleMapsClient
+      .geocode({ address: location })
+      .asPromise();
+    // tslint:disable-next-line:no-console
+    console.log({ results: JSON.stringify(response.json) });
+
+    return response.json.results[0].geometry.location;
   }
 }
