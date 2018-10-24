@@ -1,4 +1,13 @@
-import { Controller, Get, Param, Logger, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Logger,
+  Query,
+  HttpException,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { SearchResults } from './search-results.interface';
 import * as maps from '@google/maps';
 
@@ -19,11 +28,17 @@ export class SearchResultsController {
     @Query('fromLocation') fromLocation,
     @Query('toLocation') toLocation,
   ): Promise<SearchResults> {
+    if (fromLocation == null || toLocation == null) {
+      throw new BadRequestException();
+    }
     Logger.log({ fromLocation, toLocation }, 'Perfoming geo-location lookup');
     const [fromCoords, toCoords] = await Promise.all([
       this.queryGoogleAPI(fromLocation),
       this.queryGoogleAPI(toLocation),
     ]);
+    if (fromCoords == null || toCoords == null) {
+      throw new NotFoundException();
+    }
     console.log({ fromCoords, toCoords });
     const mockResults: SearchResults = {
       fromLocation,
@@ -36,12 +51,23 @@ export class SearchResultsController {
     };
     return mockResults;
   }
-  public async queryGoogleAPI(location: string): Promise<maps.LatLngLiteral> {
+  public async queryGoogleAPI(
+    location: string,
+  ): Promise<maps.LatLngLiteral | undefined> {
     const response = await this.googleMapsClient
-      .geocode({ address: location })
+      .geocode({
+        address: location,
+        // bounds: {
+        //   northeast: { lat: 52.086775, lng: 1.112659 },
+        //   southwest: { lat: 52.028834, lng: 1.224324 },
+        // },
+      })
       .asPromise();
     // tslint:disable-next-line:no-console
     console.log({ results: JSON.stringify(response.json) });
+    if (response.json.results.length === 0) {
+      return undefined;
+    }
 
     return response.json.results[0].geometry.location;
   }
