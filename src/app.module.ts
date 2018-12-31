@@ -7,6 +7,9 @@ import { BusRouteService } from 'services/bus-route.service';
 import { BusStopService } from 'services/bus-stop.service';
 import { BusStop } from 'entities/bus-stop.entity';
 import { BusRoute } from 'entities/bus-route.entity';
+import { BusStopsOnRouteService } from 'services/bus-stops-on-route.service';
+import { busStopsOnRouteProviders } from 'services/bus-stops-on-route.providers';
+import { BusStopsOnRoute } from 'entities/bus-stops-on-route.entity';
 
 @Module({
   imports: [
@@ -19,10 +22,11 @@ import { BusRoute } from 'entities/bus-route.entity';
       database: 'findmybus',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
+      logging: true,
     }),
-    TypeOrmModule.forFeature([BusStop, BusRoute]),
+    TypeOrmModule.forFeature([BusStop, BusRoute, BusStopsOnRoute]),
   ],
   controllers: [SearchResultsController],
-  providers: [BusRouteService, BusStopService],
+  providers: [BusRouteService, BusStopService, BusStopsOnRouteService],
 })
 export class AppModule {}

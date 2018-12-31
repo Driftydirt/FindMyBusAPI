@@ -2,7 +2,8 @@
 GET http://localhost:3000/search-results?fromLocation=IP3+0QU&toLocation=IP8+3SU
 ### Search2
 GET http://localhost:3000/search-results?fromLocation=IP8+3SU&toLocation=IP8+3SU
-
+### Search3
+GET http://localhost:3000/search-results?fromLocation=Tower+Ramparts&toLocation=IP3+0QU
 ### Bad Search
 GET http://localhost:3000/search-results?fromLocation=IP+0QU&toLocation=QQQQQQ
 ### Missing Parameters

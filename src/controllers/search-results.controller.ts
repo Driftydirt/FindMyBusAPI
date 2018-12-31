@@ -12,12 +12,17 @@ import * as maps from '@google/maps';
 
 import { SearchResults } from 'controllers/search-results.interface';
 import { BusStopService } from 'services/bus-stop.service';
+import { BusStopsOnRouteService } from 'services/bus-stops-on-route.service';
+import { BusStopsOnRoute } from 'entities/bus-stops-on-route.entity';
 
 @Controller('search-results')
 export class SearchResultsController {
   private readonly googleMapsClient: maps.GoogleMapsClient;
 
-  public constructor(private readonly busStopService: BusStopService) {
+  public constructor(
+    private readonly busStopService: BusStopService,
+    private readonly busStopsOnRouteService: BusStopsOnRouteService,
+  ) {
     this.googleMapsClient = maps.createClient({
       key: process.env.GOOGLE_API_KEY,
       timeout: 10_000,
@@ -35,7 +40,7 @@ export class SearchResultsController {
     }
     Logger.log({ fromLocation, toLocation }, 'Perfoming geo-location lookup');
     const [fromCoords, toCoords] = await Promise.all([
-      this.queryGoogleAPI(fromLocation),
+      this.queryGoogleAPI(fromLocation), // turns user input into usable data by using the google api
       this.queryGoogleAPI(toLocation),
     ]);
     if (fromCoords == null || toCoords == null) {
@@ -44,18 +49,45 @@ export class SearchResultsController {
     console.log({ fromCoords, toCoords });
     const fromStop = await this.busStopService.findStop(fromCoords);
     console.log({ fromStop });
+    const toStop = await this.busStopService.findStop(toCoords);
+    console.log({ toStop });
 
-    const mockResults: SearchResults = {
+    const routesStart = await this.busStopsOnRouteService.findRoute(
+      fromStop.id,
+    );
+    const routesEnd = await this.busStopsOnRouteService.findRoute(toStop.id);
+
+    const truncatedRoutes: BusStopsOnRoute[][] = [];
+    for (const routeStart of routesStart) {
+      for (const routeEnd of routesEnd) {
+        if (routeStart.busRouteId === routeEnd.busRouteId) {
+          truncatedRoutes.push(
+            await this.busStopsOnRouteService.findTruncatedRoute(
+              routeStart.busRouteId,
+              routeStart.orderID,
+              routeEnd.orderID,
+            ),
+          );
+        }
+      }
+    }
+
+    const results: SearchResults = {
       fromLocation,
       toLocation,
-      results: [
-        { title: 'Bus 1', directions: ['Step 1', 'Step 2'] },
-        { title: 'Bus 2', directions: ['Step 1', 'Step 2'] },
-        { title: 'Bus 3', directions: ['Step 1', 'Step 2'] },
-      ],
+      results: truncatedRoutes.map(
+        (route): SearchResults['results'][0] => ({
+          title: `Bus ${route[0].busRouteId}`,
+          directions: [
+            `Get on bus at ${fromStop.name}`,
+            `Get off of bus at ${toStop.name}`,
+          ],
+        }),
+      ),
     };
-    return mockResults;
+    return results;
   }
+
   public async queryGoogleAPI(
     location: string,
   ): Promise<maps.LatLngLiteral | undefined> {

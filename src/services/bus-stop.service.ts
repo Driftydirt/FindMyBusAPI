@@ -25,11 +25,11 @@ export class BusStopService {
       )
       .orderBy('distanceSquared')
       .limit(10)
-      .getMany();
+      .getOne();
 
-    console.log({ stops });
+    // console.log({ stops });
 
-    // return stops[0];
-    return undefined;
+    return stops;
+    // return undefined;
   }
 }

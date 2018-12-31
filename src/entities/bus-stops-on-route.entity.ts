@@ -9,8 +9,11 @@ export class BusStopsOnRoute {
 
   @Column()
   orderID: number;
-  @ManyToOne(type => BusRoute, busRoute => busRoute.busStopsOnRoute)
-  busRoute: BusRoute;
+
+  @Column()
+  busRouteId: number;
+  // @ManyToOne(type => BusRoute, busRoute => busRoute.busStopsOnRoute)
+  // busRoute: BusRoute;
 
   @ManyToOne(type => BusStop, busStop => busStop.busStopsOnRoute)
   busStop: BusStop;

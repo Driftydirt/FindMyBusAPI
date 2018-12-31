@@ -11,7 +11,7 @@ export class BusRoute {
 
   @OneToMany(
     type => BusStopsOnRoute,
-    busStopsOnRoute => busStopsOnRoute.busRoute,
+    busStopsOnRoute => busStopsOnRoute.busRouteId,
   ) // note: we will create author property in the Photo class below
   busStopsOnRoute: BusStopsOnRoute[];
 }
